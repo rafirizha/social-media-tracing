@@ -1,4 +1,4 @@
-# Tracing MVP
+# Social Media Tracing
 
 MVP lokal untuk menjalankan scraper `TikTok`, `Instagram`, dan `Facebook Marketplace` dari satu web app.
 
@@ -20,7 +20,7 @@ MVP lokal untuk menjalankan scraper `TikTok`, `Instagram`, dan `Facebook Marketp
 2. Install dependency:
 
 ```powershell
-python -m pip install -r C:\Users\ASUS\Tracing\tracing-mvp\api\requirements.txt
+python -m pip install -r C:\Users\ASUS\Tracing\social-media-tracing\api\requirements.txt
 ```
 
 3. Jalankan API:
@@ -36,7 +36,7 @@ Catatan:
 ## Jalankan frontend
 
 ```powershell
-cd C:\Users\ASUS\Tracing\tracing-mvp\web
+cd C:\Users\ASUS\Tracing\social-media-tracing\web
 npm.cmd install
 $env:NEXT_PUBLIC_API_BASE_URL="http://127.0.0.1:8000"
 npm.cmd run dev
