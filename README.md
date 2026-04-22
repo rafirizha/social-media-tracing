@@ -8,11 +8,6 @@ MVP lokal untuk menjalankan scraper `TikTok`, `Instagram`, dan `Facebook Marketp
 - `api/`: FastAPI untuk men-trigger scraper Python existing dan menyimpan hasil ke SQLite.
 - Scraper platform tetap reuse code yang ada di folder `C:\Users\ASUS\Tracing`.
 
-## Kenapa ini masih scalable
-
-- `platform`, `query`, `region`, `max_results`, dan `manual_wait_seconds` diperlakukan sebagai input runtime.
-- Output semua platform dinormalisasi ke schema tabel yang sama di backend.
-- SQLite hanya untuk MVP; nanti bisa diganti PostgreSQL tanpa ubah kontrak frontend.
 
 ## Jalankan backend
 
