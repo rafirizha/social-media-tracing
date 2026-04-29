@@ -1,4 +1,4 @@
-# Social Media Tracing
+# Social Media Tracing untuk Bantu Scrapping Usaha Medsos
 
 MVP lokal untuk menjalankan scraper `TikTok`, `Instagram`, dan `Facebook Marketplace` dari satu web app.
 
