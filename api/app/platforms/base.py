@@ -42,17 +42,7 @@ class BasePlatformRunner:
     script_name: str
 
     def run(self, context: PlatformContext) -> PlatformExecution:
-        env = os.environ.copy()
-        env.update(self.build_env(context))
-
-        completed = subprocess.run(
-            [str(self.python_path), self.script_name],
-            cwd=self.project_dir,
-            env=env,
-            text=True,
-            capture_output=True,
-            timeout=1800,
-        )
+        completed = self._execute(self.build_env(context))
         log_excerpt = self._build_log_excerpt(completed.stdout, completed.stderr)
         if completed.returncode != 0:
             raise PlatformExecutionError(log_excerpt or f"{self.platform_name} scraper failed")
@@ -67,6 +57,18 @@ class BasePlatformRunner:
             "TRACE_MAX_RESULTS": str(context.max_results),
             "TRACE_MANUAL_WAIT_SECONDS": str(context.manual_wait_seconds),
         }
+
+    def _execute(self, env_overrides: dict[str, str], timeout: int = 1800) -> subprocess.CompletedProcess[str]:
+        env = os.environ.copy()
+        env.update(env_overrides)
+        return subprocess.run(
+            [str(self.python_path), self.script_name],
+            cwd=self.project_dir,
+            env=env,
+            text=True,
+            capture_output=True,
+            timeout=timeout,
+        )
 
     def read_json(self, path: Path) -> list[dict[str, Any]]:
         if not path.exists():

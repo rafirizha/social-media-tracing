@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 from pathlib import Path
 
 
@@ -18,3 +19,15 @@ FACEBOOK_DIR = SCRAPER_ROOT / "anambas-facebook"
 
 RUN_OUTPUT_ROOT = DATA_DIR / "runs"
 RUN_OUTPUT_ROOT.mkdir(parents=True, exist_ok=True)
+AUTH_ROOT = DATA_DIR / "auth"
+AUTH_ROOT.mkdir(parents=True, exist_ok=True)
+
+
+def _load_allowed_origins() -> list[str]:
+    raw = os.getenv("TRACE_ALLOWED_ORIGINS")
+    if raw:
+        return [origin.strip() for origin in raw.split(",") if origin.strip()]
+    return ["http://localhost:3000", "http://127.0.0.1:3000"]
+
+
+ALLOWED_ORIGINS = _load_allowed_origins()

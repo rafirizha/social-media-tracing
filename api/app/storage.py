@@ -1,13 +1,14 @@
 from __future__ import annotations
 
 import json
+import shutil
 import sqlite3
 from contextlib import contextmanager
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any, Iterator
 
-from .config import DB_PATH
+from .config import DB_PATH, RUN_OUTPUT_ROOT
 
 
 def utcnow() -> str:
@@ -23,6 +24,7 @@ class Storage:
     def connect(self) -> Iterator[sqlite3.Connection]:
         conn = sqlite3.connect(self.db_path)
         conn.row_factory = sqlite3.Row
+        conn.execute("pragma foreign_keys = on")
         try:
             yield conn
             conn.commit()
@@ -56,6 +58,11 @@ class Storage:
                     summary text not null,
                     source_label text not null,
                     metadata_json text not null
+                );
+
+                create table if not exists platform_auth (
+                    platform text primary key,
+                    authenticated_at text not null
                 );
                 """
             )
@@ -128,6 +135,53 @@ class Storage:
                 """,
                 (utcnow(), error_message, log_excerpt, run_id),
             )
+
+    def delete_run(self, run_id: int) -> bool:
+        with self.connect() as conn:
+            run = conn.execute("select id from runs where id = ?", (run_id,)).fetchone()
+            if run is None:
+                return False
+            conn.execute("delete from results where run_id = ?", (run_id,))
+            conn.execute("delete from runs where id = ?", (run_id,))
+
+        output_dir = (RUN_OUTPUT_ROOT / f"run-{run_id}").resolve()
+        root_dir = RUN_OUTPUT_ROOT.resolve()
+        try:
+            output_dir.relative_to(root_dir)
+        except ValueError:
+            return True
+        if output_dir.exists():
+            shutil.rmtree(output_dir, ignore_errors=True)
+        return True
+
+    def set_platform_auth(self, platform: str) -> dict[str, Any]:
+        authenticated_at = utcnow()
+        with self.connect() as conn:
+            conn.execute(
+                """
+                insert into platform_auth (platform, authenticated_at)
+                values (?, ?)
+                on conflict(platform) do update set authenticated_at = excluded.authenticated_at
+                """,
+                (platform, authenticated_at),
+            )
+        return {"platform": platform, "authenticated_at": authenticated_at}
+
+    def get_platform_auth(self, platform: str) -> dict[str, Any] | None:
+        with self.connect() as conn:
+            row = conn.execute(
+                "select platform, authenticated_at from platform_auth where platform = ?",
+                (platform,),
+            ).fetchone()
+        if row is None:
+            return None
+        return {
+            "platform": row["platform"],
+            "authenticated_at": row["authenticated_at"],
+        }
+
+    def is_platform_authenticated(self, platform: str) -> bool:
+        return self.get_platform_auth(platform) is not None
 
     def list_runs(self) -> list[dict[str, Any]]:
         with self.connect() as conn:

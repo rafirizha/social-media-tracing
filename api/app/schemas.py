@@ -52,3 +52,7 @@ class RunRecord(BaseModel):
 
 class RunDetail(RunRecord):
     results: list[ResultItem]
+
+
+class MarketplaceLoginCreate(BaseModel):
+    manual_wait_seconds: int = Field(default=90, ge=10, le=600)
